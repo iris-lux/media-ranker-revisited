@@ -2,7 +2,7 @@ require "test_helper"
 
 describe WorksController do
   let(:existing_work) { works(:album) }
-
+  let(:user){users(:kari)}
   describe "root" do
     it "succeeds with all media types" do
       get root_path
@@ -189,19 +189,54 @@ describe WorksController do
 
   describe "upvote" do
     it "redirects to the work page if no user is logged in" do
-      skip
+      expect{
+        post upvote_path(existing_work.id)
+      }.wont_change 'existing_work.votes.count'
+
+      must_respond_with :redirect
+
+      must_redirect_to work_path(existing_work)
     end
 
     it "redirects to the work page after the user has logged out" do
-      skip
+      perform_login(user)
+      delete logout_path
+
+      expect{
+        post upvote_path(existing_work.id)
+      }.wont_change 'existing_work.votes.count'
+
+      must_respond_with :redirect
+
+      must_redirect_to work_path(existing_work)
+
     end
 
     it "succeeds for a logged-in user and a fresh user-vote pair" do
-      skip
+      perform_login(user)
+
+      expect{
+        post upvote_path(works(:poodr))
+      }.must_change 'works(:poodr).votes.count', 1
+
+      expect(flash[:status]).must_equal :success
+      expect(flash[:result_text]).must_equal "Successfully upvoted!"
+
+      must_redirect_to work_path(works(:poodr))
     end
 
     it "redirects to the work page if the user has already voted for that work" do
-      skip
+      perform_login(user)
+
+      expect{
+        post upvote_path(existing_work)
+      }.wont_change 'existing_work.votes.count'
+
+      expect(flash[:status]).must_equal :failure
+      expect(flash[:result_text]).must_equal "Could not upvote"
+      expect(flash[:messages][:user][0]).must_equal "has already voted for this work"
+
+      must_redirect_to work_path(existing_work)
     end
   end
 end
