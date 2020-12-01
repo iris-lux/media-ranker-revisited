@@ -14,4 +14,12 @@ class ApplicationController < ActionController::Base
       @login_user = User.find_by(id: session[:user_id])
     end
   end
+
+  def is_user?
+    unless @login_user
+      flash[:status] = :failure
+      flash[:result_text] = "You must log in to do that"
+      redirect_to root_path
+    end
+  end
 end

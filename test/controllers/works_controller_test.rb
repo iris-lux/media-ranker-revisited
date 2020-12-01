@@ -34,13 +34,17 @@ describe WorksController do
   INVALID_CATEGORIES = ["nope", "42", "", "  ", "albumstrailingtext"]
 
   describe "index" do
-    it "succeeds when there are works" do
+    it "succeeds when there are works and user is logged in" do
+      perform_login(user)
+
       get works_path
 
       must_respond_with :success
     end
 
-    it "succeeds when there are no works" do
+    it "succeeds when there are no works and user is logged in" do
+      perform_login(user)
+
       Work.all do |work|
         work.destroy
       end
@@ -49,6 +53,17 @@ describe WorksController do
 
       must_respond_with :success
     end
+
+    it "redirects when there is no one logged in" do
+
+      get works_path
+
+      must_respond_with :redirect
+
+      expect(flash[:status]).must_equal :failure
+      expect(flash[:result_text]).must_equal "You must log in to do that"
+    end
+
   end
 
   describe "new" do
@@ -96,7 +111,8 @@ describe WorksController do
   end
 
   describe "show" do
-    it "succeeds for an extant work ID" do
+    it "succeeds for an extant work ID when user is logged in" do
+      perform_login(user)
       get work_path(existing_work.id)
 
       must_respond_with :success
@@ -109,6 +125,15 @@ describe WorksController do
       get work_path(destroyed_id)
 
       must_respond_with :not_found
+    end
+
+    it 'redirects when user is not logged in' do
+      get work_path(existing_work.id)
+
+      must_respond_with :redirect
+
+      expect(flash[:status]).must_equal :failure
+      expect(flash[:result_text]).must_equal "You must log in to do that"
     end
   end
 

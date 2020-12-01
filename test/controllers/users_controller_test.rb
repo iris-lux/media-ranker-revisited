@@ -1,6 +1,53 @@
 require "test_helper"
 
 describe UsersController do
+  let(:user){users(:kari)}
+  describe "index" do
+    it "succeeds when user is logged in" do
+      perform_login(user)
+
+      get users_path
+
+      must_respond_with :success
+    end
+
+
+    it "redirects when there is no one logged in" do
+
+      get users_path
+
+      must_respond_with :redirect
+
+      expect(flash[:status]).must_equal :failure
+      expect(flash[:result_text]).must_equal "You must log in to do that"
+    end
+
+  end
+
+  describe "show" do
+    it "succeeds for an extant user ID when user is logged in" do
+      perform_login(user)
+      get user_path(user.id)
+
+      must_respond_with :success
+    end
+
+    it "redirectsfor a bogus work ID" do
+
+      get user_path(-2)
+
+      must_respond_with :redirect
+    end
+
+    it 'redirects when user is not logged in' do
+      get user_path(user.id)
+
+      must_respond_with :redirect
+
+      expect(flash[:status]).must_equal :failure
+      expect(flash[:result_text]).must_equal "You must log in to do that"
+    end
+  end
 
   describe "auth_callback" do
     it "logs in an existing user and redirects to the root path" do

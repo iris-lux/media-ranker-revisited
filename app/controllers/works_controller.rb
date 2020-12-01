@@ -2,7 +2,7 @@ class WorksController < ApplicationController
   # We should always be able to tell what category
   # of work we're dealing with
   before_action :category_from_work, except: [:root, :index, :new, :create]
-
+  before_action :is_user?, only: [:index, :show]
   def root
     @albums = Work.best_albums
     @books = Work.best_books
@@ -91,4 +91,6 @@ class WorksController < ApplicationController
     return render_404 unless @work
     @media_category = @work.category.downcase.pluralize
   end
+
+
 end
