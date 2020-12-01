@@ -10,6 +10,7 @@ class UsersController < ApplicationController
 
   def create
     auth_hash = request.env["omniauth.auth"]
+
     user = User.find_by(uid: auth_hash[:uid], provider: "github")
 
     if user
@@ -20,7 +21,7 @@ class UsersController < ApplicationController
 
       if user.save
         flash[:status] = :success
-        flash[:result_text] = "Successfully created new user #{user.username} with ID #{user.id}"
+        flash[:result_text] = "Successfully created new user #{user.username} with ID #{user.uid}"
       else
         flash.now[:status] = :failure
         flash.now[:result_text] = "Could not log in"
@@ -36,8 +37,16 @@ class UsersController < ApplicationController
   end
 
   def logout
-    session[:user_id] = nil
-    flash[:success] = "Successfully logged out!"
+
+    if(session[:user_id].nil?)
+      flash[:status] = :failure
+      flash[:result_text] = "You were not logged in!"
+    else
+      session[:user_id] = nil
+      flash[:status] = :success
+      flash[:result_text] = "Successfully logged out!"
+    end
+
 
     redirect_to root_path
   end
